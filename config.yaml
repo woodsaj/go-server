@@ -1,0 +1,16 @@
+---
+worker-b:
+  enabled: true
+
+worker-a:
+  enabled: true
+  data: "foo bar baz"
+
+processor-foo:
+  enabled: true
+
+processor-bar:
+  enabled: false
+
+api:
+  listen: ":8083"
