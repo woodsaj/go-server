@@ -1,4 +1,4 @@
-package workers
+package components
 
 import (
 	"sync"
@@ -7,10 +7,11 @@ import (
 )
 
 func init() {
-	registry.RegisterService(&Pool{}, 99)
+	registry.RegisterService(&WorkerPool{}, 99)
+	registry.RegisterService(&ProcessorController{}, 99)
 }
 
-func (s *Pool) Init() error {
+func (s *WorkerPool) Init() error {
 	s.workers = make([]Worker, 0)
 	return nil
 }
@@ -20,18 +21,18 @@ type Worker interface {
 	Status() string
 }
 
-type Pool struct {
+type WorkerPool struct {
 	workers []Worker
 	sync.Mutex
 }
 
-func (wp *Pool) Register(w Worker) {
+func (wp *WorkerPool) Register(w Worker) {
 	wp.Lock()
 	wp.workers = append(wp.workers, w)
 	wp.Unlock()
 }
 
-func (wp *Pool) Status() []string {
+func (wp *WorkerPool) Status() []string {
 	wp.Lock()
 	result := make([]string, len(wp.workers))
 	for i, w := range wp.workers {

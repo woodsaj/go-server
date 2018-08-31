@@ -9,9 +9,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.com/woodsaj/go-server/processor"
+	"github.com/woodsaj/go-server/components"
 	"github.com/woodsaj/go-server/registry"
-	"github.com/woodsaj/go-server/workers"
 	"gopkg.in/macaron.v1"
 )
 
@@ -21,11 +20,11 @@ func init() {
 }
 
 type Api struct {
-	Cfg         *viper.Viper          `inject:""`
-	WorkerPool  *workers.Pool         `inject:""`
-	PController *processor.Controller `inject:""`
+	Cfg         *viper.Viper                    `inject:""`
+	WorkerPool  *components.WorkerPool          `inject:""`
+	PController *components.ProcessorController `inject:""`
 
-	processor processor.Processor
+	processor components.Processor
 	ctx       context.Context
 }
 

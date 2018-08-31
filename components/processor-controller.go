@@ -1,4 +1,4 @@
-package processor
+package components
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	registry.RegisterService(&Controller{}, 99)
+	registry.RegisterService(&ProcessorController{}, 99)
 }
 
 type Processor interface {
@@ -16,15 +16,15 @@ type Processor interface {
 	Ready() <-chan struct{}
 }
 
-func (c *Controller) Init() error {
+func (c *ProcessorController) Init() error {
 	return nil
 }
 
-type Controller struct {
+type ProcessorController struct {
 	Processor Processor
 }
 
-func (c *Controller) Set(p Processor) error {
+func (c *ProcessorController) Set(p Processor) error {
 	log.Infof("setting processor to %s", p.Data())
 	if c.Processor != nil {
 		return fmt.Errorf("Only 1 processor can be set.")
@@ -33,6 +33,6 @@ func (c *Controller) Set(p Processor) error {
 	return nil
 }
 
-func (c *Controller) Get() Processor {
+func (c *ProcessorController) Get() Processor {
 	return c.Processor
 }

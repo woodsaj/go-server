@@ -3,13 +3,13 @@ package processorfoo
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.com/woodsaj/go-server/processor"
+	"github.com/woodsaj/go-server/components"
 	"github.com/woodsaj/go-server/registry"
 )
 
 type ProcessorFoo struct {
-	Cfg         *viper.Viper          `inject:""`
-	PController *processor.Controller `inject:""`
+	Cfg         *viper.Viper                    `inject:""`
+	PController *components.ProcessorController `inject:""`
 
 	ready chan struct{}
 }
