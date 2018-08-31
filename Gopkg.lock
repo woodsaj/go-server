@@ -2,10 +2,10 @@
 
 
 [[projects]]
+  branch = "master"
   name = "github.com/Unknwon/com"
   packages = ["."]
-  revision = "28b053d5a2923b87ce8c5a08f3af779894a72758"
-  version = "v1"
+  revision = "da59b551951d50441ca26b7a8cd81317f34df87f"
 
 [[projects]]
   branch = "master"
@@ -169,6 +169,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8a3f273592b48b1bb89d828a2c84469c776e00eec65f51e46563e107c07fafe5"
+  inputs-digest = "93d5912476400902582a940a911b912f5b185a199a58d67d026cdf516238141b"
   solver-name = "gps-cdcl"
   solver-version = 1

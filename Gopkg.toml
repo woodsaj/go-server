@@ -48,3 +48,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[override]]
+  name = "github.com/Unknwon/com"
+  branch = "master"
