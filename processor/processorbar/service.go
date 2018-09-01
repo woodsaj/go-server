@@ -5,13 +5,13 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	"github.com/woodsaj/go-server/cfg"
 	"github.com/woodsaj/go-server/components"
 	"github.com/woodsaj/go-server/registry"
 )
 
 type ProcessorBar struct {
-	Cfg         *viper.Viper                    `inject:""`
+	Cfg         *cfg.Cfg                        `inject:""`
 	PController *components.ProcessorController `inject:""`
 
 	ready chan struct{}
@@ -19,8 +19,13 @@ type ProcessorBar struct {
 
 func init() {
 	registry.RegisterService(&ProcessorBar{}, 10)
-	viper.SetDefault("processor-bar.enabled", false)
-	viper.SetDefault("processor-bar.data", "ProcessorBar")
+
+	//startup settings
+	cfg.SetDefault("processor-bar.enabled", false)
+	cfg.SetDefault("processor-bar.max-start-delay", time.Second*10)
+
+	// runtime settings
+	cfg.SetDefault("processor-bar.data", "ProcessorBar")
 }
 
 func (p *ProcessorBar) Init() error {

@@ -2,13 +2,13 @@ package processorfoo
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	"github.com/woodsaj/go-server/cfg"
 	"github.com/woodsaj/go-server/components"
 	"github.com/woodsaj/go-server/registry"
 )
 
 type ProcessorFoo struct {
-	Cfg         *viper.Viper                    `inject:""`
+	Cfg         *cfg.Cfg                        `inject:""`
 	PController *components.ProcessorController `inject:""`
 
 	ready chan struct{}
@@ -16,8 +16,12 @@ type ProcessorFoo struct {
 
 func init() {
 	registry.RegisterService(&ProcessorFoo{}, 10)
-	viper.SetDefault("processor-foo.enabled", false)
-	viper.SetDefault("processor-foo.data", "ProcessorFoo")
+
+	// startup settings
+	cfg.SetDefault("processor-foo.enabled", false)
+
+	// runtime settings
+	cfg.SetDefault("processor-foo.data", "ProcessorFoo")
 }
 
 func (p *ProcessorFoo) Init() error {

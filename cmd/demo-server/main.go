@@ -36,6 +36,13 @@ func main() {
 	flag.StringVar(&confDir, "config-dir", "/etc/demo", "path to configuration dir")
 	flag.Parse()
 
+	lvl, err := log.ParseLevel(logLevel)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.SetLevel(lvl)
+
+	// initialize our config
 	if _, err := os.Stat(confDir); err == nil {
 		viper.SetConfigName("config")
 		viper.AddConfigPath(confDir)
@@ -44,7 +51,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-
 	viper.SetEnvPrefix("DEMO")
 	viper.AutomaticEnv()
 	replacer := strings.NewReplacer("-", "_", ".", "_")

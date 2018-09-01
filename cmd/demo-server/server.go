@@ -7,6 +7,7 @@ import (
 	"github.com/facebookgo/inject"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/woodsaj/go-server/cfg"
 	"github.com/woodsaj/go-server/registry"
 	"golang.org/x/sync/errgroup"
 )
@@ -32,10 +33,13 @@ func NewCoreSrv() *CoreSrv {
 func (srv *CoreSrv) Run() error {
 	serviceGraph := inject.Graph{}
 
+	config := cfg.New(viper.GetViper())
+	config.Watch()
+
 	// inject our config into each service
 	// This allows us to just simply provide direct configuration to each service if we dont
 	// want to use a configFile, EnvVars or cmdLine args
-	serviceGraph.Provide(&inject.Object{Value: viper.GetViper()})
+	serviceGraph.Provide(&inject.Object{Value: config})
 
 	// inject our logger
 	serviceGraph.Provide(&inject.Object{Value: log.StandardLogger()})

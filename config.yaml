@@ -1,10 +1,12 @@
 ---
 worker-b:
   enabled: true
+  interval: 5s
 
 worker-a:
   enabled: true
   data: "foo bar baz"
+  interval: 5s
 
 processor-foo:
   enabled: true

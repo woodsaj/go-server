@@ -6,28 +6,41 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	"github.com/woodsaj/go-server/cfg"
 	"github.com/woodsaj/go-server/components"
 	"github.com/woodsaj/go-server/registry"
 )
 
 type WorkerA struct {
-	Cfg         *viper.Viper                    `inject:""`
+	Cfg         *cfg.Cfg                        `inject:""`
 	WorkerPool  *components.WorkerPool          `inject:""`
 	PController *components.ProcessorController `inject:""`
+
+	reload chan struct{}
 }
 
 func init() {
 	registry.RegisterService(&WorkerA{}, 9)
-	viper.SetDefault("worker-a.enabled", false)
-	viper.SetDefault("worker-a.data", "workerA")
+
+	// startup settings
+	cfg.SetDefault("worker-a.enabled", false)
+
+	// runtime settings
+	cfg.SetDefault("worker-a.data", "workerA")
+	cfg.SetDefault("worker-a.interval", time.Second*2)
 }
 
 func (s *WorkerA) Init() error {
 	log.Debug("Initializing WorkerA svc")
-	if s.Cfg.GetString("worker-a.data") == "" {
-		return fmt.Errorf("worker-a.data is not set")
+	if s.Cfg.GetDuration("worker-a.interval") == time.Duration(0) {
+		return fmt.Errorf("worker-a.interval must be > 0")
 	}
+
+	s.reload = make(chan struct{})
+	s.Cfg.OnChange(func() {
+		log.Info("workerA detected config change. Applying changes to runtime settings.")
+		s.reload <- struct{}{}
+	})
 	s.WorkerPool.Register(s)
 	return nil
 }
@@ -57,7 +70,8 @@ func (s *WorkerA) Run(ctx context.Context) error {
 		log.Info("processor ready, starting up WorkerA")
 	}
 
-	ticker := time.NewTicker(time.Second * 5)
+	interval := s.Cfg.GetDuration("worker-a.interval")
+	ticker := time.NewTicker(interval)
 
 	for {
 		select {
@@ -66,6 +80,18 @@ func (s *WorkerA) Run(ctx context.Context) error {
 		case <-done:
 			log.Info("WorkerA shutting down")
 			return nil
+		case <-s.reload:
+			// config reloaded.  Adjust or ticker interval if it has changed.
+			newInterval := s.Cfg.GetDuration("worker-a.interval")
+			if newInterval == 0 {
+				log.Errorf("worker-a.interval has been updated to invalid value. %s", newInterval.String())
+				continue
+			}
+			if interval != newInterval && newInterval != 0 {
+				interval = newInterval
+				ticker.Stop()
+				ticker = time.NewTicker(interval)
+			}
 		}
 	}
 	return nil

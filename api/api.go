@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
+	"github.com/woodsaj/go-server/cfg"
 	"github.com/woodsaj/go-server/components"
 	"github.com/woodsaj/go-server/registry"
 	"gopkg.in/macaron.v1"
@@ -16,11 +17,11 @@ import (
 
 func init() {
 	registry.RegisterService(&Api{}, 5)
-	viper.SetDefault("api.listen", ":8080")
+	cfg.SetDefault("api.listen", ":8080")
 }
 
 type Api struct {
-	Cfg         *viper.Viper                    `inject:""`
+	Cfg         *cfg.Cfg                        `inject:""`
 	WorkerPool  *components.WorkerPool          `inject:""`
 	PController *components.ProcessorController `inject:""`
 
@@ -29,12 +30,22 @@ type Api struct {
 }
 
 func (a *Api) Init() error {
-	log.Debug("Initializing Api svc")
-	// validate config
+	log.Debug("Initializing Api service")
 
-	if a.Cfg.GetString("api.listen") == "" {
+	// validate config
+	listen := a.Cfg.GetString("api.listen")
+	if listen == "" {
 		return fmt.Errorf("api.listen is not set")
 	}
+	host := strings.Split(listen, ":")
+	port, err := strconv.ParseInt(host[len(host)-1], 10, 64)
+	if err != nil {
+		return fmt.Errorf("Could not parse api.listen address. %s", err)
+	}
+	if port < 0 || port > 65535 {
+		return fmt.Errorf("Invalid TCP port for listen address.")
+	}
+
 	a.processor = a.PController.Get()
 	return nil
 }
@@ -59,7 +70,7 @@ func (a *Api) Run(ctx context.Context) error {
 		Addr:    addr,
 		Handler: m,
 	}
-	log.Infof("Api server listening on %s", addr)
+	log.Infof("Api server listening on %s", l.Addr().String())
 	err = srv.Serve(l)
 	if ctx.Err() != nil {
 		return nil
