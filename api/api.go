@@ -60,6 +60,7 @@ func (a *Api) Run(ctx context.Context) error {
 	m.Get("/", a.Hello)
 	m.Get("/processor", a.Processor)
 	m.Get("/workers", a.Workers)
+	m.Get("/config", a.Config)
 
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -96,5 +97,10 @@ func (a *Api) Processor(ctx *macaron.Context) {
 
 func (a *Api) Workers(ctx *macaron.Context) {
 	ctx.PlainText(200, []byte(strings.Join(a.WorkerPool.Status(), "\n")))
+	return
+}
+
+func (a *Api) Config(ctx *macaron.Context) {
+	ctx.JSON(200, a.Cfg.AllSettings())
 	return
 }
