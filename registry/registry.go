@@ -4,12 +4,30 @@ import (
 	"context"
 	"reflect"
 	"sort"
+
+	"github.com/facebookgo/inject"
+	log "github.com/sirupsen/logrus"
 )
 
 type Descriptor struct {
 	Name         string
 	Instance     Service
 	InitPriority Priority
+}
+
+func (d *Descriptor) Inject(serviceGraph *inject.Graph) {
+	log.Debugf("adding %s as type %T to dependency graph.", d.Name, d.Instance)
+	serviceGraph.Provide(&inject.Object{Value: d.Instance, Name: d.Name})
+}
+
+func (d *Descriptor) IsDisabled() bool {
+	canBeDisabled, ok := d.Instance.(CanBeDisabled)
+	return ok && canBeDisabled.IsDisabled()
+}
+
+func (d *Descriptor) BackgroundService() (BackgroundService, bool) {
+	svc, ok := d.Instance.(BackgroundService)
+	return svc, ok
 }
 
 var services []*Descriptor
@@ -59,12 +77,6 @@ type BackgroundService interface {
 	// on all services. The `context.Context` passed into the function should be used
 	// to subscribe to ctx.Done() so the service can be notified when Grafana shuts down.
 	Run(ctx context.Context) error
-}
-
-// IsDisabled takes an service and return true if its disabled
-func IsDisabled(srv Service) bool {
-	canBeDisabled, ok := srv.(CanBeDisabled)
-	return ok && canBeDisabled.IsDisabled()
 }
 
 type Priority int

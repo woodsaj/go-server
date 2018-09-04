@@ -8,7 +8,6 @@ import (
 
 func init() {
 	registry.RegisterService(&WorkerPool{}, 99)
-	registry.RegisterService(&ProcessorController{}, 99)
 }
 
 func (s *WorkerPool) Init() error {

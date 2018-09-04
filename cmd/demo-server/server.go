@@ -47,7 +47,7 @@ func (srv *CoreSrv) Run() error {
 	services := registry.GetServices()
 	// Add all services to dependency graph
 	for _, service := range services {
-		serviceGraph.Provide(&inject.Object{Value: service.Instance, Name: service.Name})
+		service.Inject(&serviceGraph)
 	}
 
 	// Inject dependencies to services
@@ -57,7 +57,7 @@ func (srv *CoreSrv) Run() error {
 
 	// Init & start services
 	for _, service := range services {
-		if registry.IsDisabled(service.Instance) {
+		if service.IsDisabled() {
 			continue
 		}
 
@@ -72,12 +72,12 @@ func (srv *CoreSrv) Run() error {
 	for _, svc := range services {
 		// variable needed for accessing loop variable in function callback
 		descriptor := svc
-		service, ok := svc.Instance.(registry.BackgroundService)
+		service, ok := descriptor.BackgroundService()
 		if !ok {
 			continue
 		}
 
-		if registry.IsDisabled(descriptor.Instance) {
+		if descriptor.IsDisabled() {
 			continue
 		}
 

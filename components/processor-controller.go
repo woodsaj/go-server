@@ -25,7 +25,7 @@ type ProcessorController struct {
 }
 
 func (c *ProcessorController) Set(p Processor) error {
-	log.Infof("setting processor to %s", p.Data())
+	log.Infof("setting processor to %T", p)
 	if c.Processor != nil {
 		return fmt.Errorf("Only 1 processor can be set.")
 	}
