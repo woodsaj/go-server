@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"strings"
 	"syscall"
 
+	ini "github.com/glacjay/goini"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
@@ -32,8 +34,10 @@ func init() {
 func main() {
 	var logLevel string
 	var confDir string
+	var oldConfig bool
 	flag.StringVar(&logLevel, "log-level", "info", "One of debug,info,warn,error,fatal,panic")
 	flag.StringVar(&confDir, "config-dir", "/etc/demo", "path to configuration dir")
+	flag.BoolVar(&oldConfig, "old-config", true, "use old .ini config file")
 	flag.Parse()
 
 	lvl, err := log.ParseLevel(logLevel)
@@ -43,14 +47,36 @@ func main() {
 	log.SetLevel(lvl)
 
 	// initialize our config
-	if _, err := os.Stat(confDir); err == nil {
+	if !oldConfig {
 		viper.SetConfigName("config")
 		viper.AddConfigPath(confDir)
-		err := viper.ReadInConfig()
+		err = viper.ReadInConfig()
 		if err != nil {
 			log.Fatal(err)
 		}
+	} else {
+		// load old ini config
+		iniConf, err := ini.Load(confDir + "/config.ini")
+		if err != nil {
+			log.Fatal(err)
+		}
+		// now write the ini file out to a []byte in YAML format.
+		yaml := new(bytes.Buffer)
+		for name, section := range iniConf {
+			for key, val := range section {
+				if name == "" {
+					yaml.WriteString(fmt.Sprintf("%s: %s\n", key, val))
+				} else {
+					yaml.WriteString(fmt.Sprintf("%s.%s: %s\n", name, key, val))
+				}
+			}
+
+		}
+		fmt.Println(yaml.String())
+		viper.SetConfigType("yaml")
+		viper.ReadConfig(yaml)
 	}
+
 	viper.SetEnvPrefix("DEMO")
 	viper.AutomaticEnv()
 	replacer := strings.NewReplacer("-", "_", ".", "_")
